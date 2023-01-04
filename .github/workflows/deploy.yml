@@ -1,0 +1,65 @@
+name: Deploy LibArchive Prebuilt (Cron)
+
+on:  
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'  # every day at midnight
+
+jobs:
+  windows:
+    runs-on: windows-2019
+    name: windows-2019-${{ matrix.arch.triplet }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - triplet: x64-windows
+            arch: x64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: CMake 
+      uses: lukka/get-cmake@latest
+
+    - name: MSVC
+      uses: TheMrMilchmann/setup-msvc-dev@v2
+      with:
+        arch: ${{ matrix.arch.arch }}
+
+    - name: Make Output Directory
+      run: |
+        mkdir -p ${{ github.workspace}}/upload
+        mkdir -p ${{ github.workspace}}/output
+
+    - name: Build LibArchive
+      run: |
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        vcpkg install libarchive:${{ matrix.arch.triplet }}
+        ls -R installed
+        
+        cp -Recurse -force installed/${{ matrix.arch.triplet }}/include ${{ github.workspace }}/output/
+        cp -Recurse -force installed/${{ matrix.arch.triplet }}/bin ${{ github.workspace }}/output/
+        cp -Recurse -force installed/${{ matrix.arch.triplet }}/lib ${{ github.workspace }}/output/
+        cd ..
+
+    - name: Zip Files
+      run: |
+        cd ${{ github.workspace }}/output/
+        7z a ${{ github.workspace }}/upload/libarchive-${{ matrix.arch.triplet }}.zip .
+
+    - name: Upload Bundle
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ github.workspace }}/upload/*.zip
+        tag: continuous
+        overwrite: true
+        file_glob: true
+        prerelease: true
+        release_name: "Prebuilt LibArchive Library"
+        body: "Prebuilt binaries for LibArchive for Windows Only."
