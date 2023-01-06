@@ -17,6 +17,8 @@ jobs:
         arch:
           - triplet: x64-windows
             arch: x64
+          - triplet: x86-windows
+            arch: x86
 
     steps:
     - name: Checkout
