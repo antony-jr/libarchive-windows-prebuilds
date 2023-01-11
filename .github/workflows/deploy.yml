@@ -66,7 +66,6 @@ jobs:
         file: ${{ github.workspace }}/upload/libarchive-${{ matrix.arch.triplet }}.zip 
         tag: continuous
         overwrite: true
-        file_glob: true
         prerelease: true
         release_name: "Prebuilt LibArchive Library"
         body: "Prebuilt binaries for LibArchive for Windows Only."
