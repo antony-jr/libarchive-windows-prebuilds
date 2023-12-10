@@ -44,7 +44,7 @@ jobs:
       run: |
         cd vcpkg
         .\bootstrap-vcpkg.bat
-        vcpkg install libarchive:${{ matrix.arch.triplet }}
+        vcpkg install libarchive[bzip2,core,libxml2,lz4,lzma,lzo,zstd]:${{ matrix.arch.triplet }}
         ls -R installed
         
         cp -Recurse -force installed/${{ matrix.arch.triplet }}/include ${{ github.workspace }}/output/
